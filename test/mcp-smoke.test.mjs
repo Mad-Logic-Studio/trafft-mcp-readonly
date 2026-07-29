@@ -15,7 +15,6 @@ const expectedTools = [
   "compare_services_to_expected",
   "find_duplicate_customers",
   "find_services_by_name",
-  "get_appointment",
   "get_available_times",
   "get_customer",
   "get_employee",
