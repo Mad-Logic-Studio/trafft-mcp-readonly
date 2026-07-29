@@ -27,6 +27,7 @@ test("live validator emits only sanitized metadata and expected-service results"
   const client = {
     async get(path) {
       requested.push(path);
+      if (path.startsWith("/available-times?")) return { data: [{ date: "private-date-value" }] };
       if (!payloads.has(path)) throw new Error("Unexpected test path");
       return payloads.get(path);
     }
@@ -47,9 +48,19 @@ test("live validator emits only sanitized metadata and expected-service results"
   assert.ok(requested.includes("/customers/22"));
   assert.equal(requested.includes("/appointments/44"), false);
   assert.equal(summary.probes.find((probe) => probe.name === "appointments")?.detail, "skipped");
+  assert.equal(summary.probes.find((probe) => probe.name === "availability")?.list, "ok");
+
+  const availabilityPath = requested.find((path) => path.startsWith("/available-times?"));
+  assert.ok(availabilityPath);
+  const availabilityUrl = new URL(`https://example.test${availabilityPath}`);
+  assert.equal(availabilityUrl.searchParams.get("service"), "11");
+  assert.equal(availabilityUrl.searchParams.get("calendar_start_date"), availabilityUrl.searchParams.get("calendar_end_date"));
+  assert.match(availabilityUrl.searchParams.get("calendar_start_date") ?? "", /^\d{4}-\d{2}-\d{2}$/);
+  assert.equal(availabilityUrl.searchParams.has("serviceId"), false);
+  assert.equal(availabilityUrl.searchParams.has("date"), false);
 
   const serialized = JSON.stringify(summary);
-  for (const value of sensitiveValues) assert.equal(serialized.includes(value), false);
+  for (const value of [...sensitiveValues, "private-date-value"]) assert.equal(serialized.includes(value), false);
 });
 
 test("live validator classifies a failed endpoint without echoing its error body", async () => {
@@ -63,6 +74,7 @@ test("live validator classifies a failed endpoint without echoing its error body
   const summary = await runLiveValidation(client, "/api/v2");
   assert.equal(summary.passed, false);
   assert.equal(summary.probes[0].errorCode, "http-403");
+  assert.equal(summary.probes.find((probe) => probe.name === "availability")?.list, "skipped");
   assert.equal(JSON.stringify(summary).includes("secret-body"), false);
 });
 
