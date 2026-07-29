@@ -16,7 +16,7 @@ interface ProbeDefinition {
 
 export interface ProbeResult {
   name: string;
-  list: "ok" | "error";
+  list: "ok" | "skipped" | "error";
   detail: "ok" | "skipped" | "error";
   hasRecords: boolean;
   recognizedFields: string[];
@@ -78,7 +78,15 @@ const SAFE_FIELD_NAMES = new Set([
   "days_off",
   "daysOff",
   "pagination",
-  "meta"
+  "meta",
+  "date",
+  "time",
+  "start_time",
+  "startTime",
+  "end_time",
+  "endTime",
+  "slots",
+  "times"
 ]);
 
 export async function runLiveValidation(
@@ -128,10 +136,49 @@ export async function runLiveValidation(
     }
   }
 
+  const serviceId = extractId(extractRecords(servicesPayload)[0]);
+  if (serviceId === null) {
+    probes.push({
+      name: "availability",
+      list: "skipped",
+      detail: "skipped",
+      hasRecords: false,
+      recognizedFields: [],
+      errorCode: "no-service-record"
+    });
+  } else {
+    const date = new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
+    const query = new URLSearchParams({
+      calendar_start_date: date,
+      calendar_end_date: date,
+      service: serviceId
+    }).toString();
+    try {
+      const payload = await client.get(`/available-times?${query}`);
+      const records = extractRecords(payload);
+      probes.push({
+        name: "availability",
+        list: "ok",
+        detail: "skipped",
+        hasRecords: records.length > 0,
+        recognizedFields: recognizedKeys(records[0] ?? payload).sort()
+      });
+    } catch (error) {
+      probes.push({
+        name: "availability",
+        list: "error",
+        detail: "skipped",
+        hasRecords: false,
+        recognizedFields: [],
+        errorCode: classifyError(error)
+      });
+    }
+  }
+
   const serviceChecks = expectedServices.length > 0
     ? reconcileServices(servicesPayload, expectedServices)
     : "not-configured";
-  const probesPassed = probes.every((probe) => probe.list === "ok" && probe.detail !== "error");
+  const probesPassed = probes.every((probe) => probe.list !== "error" && probe.detail !== "error");
   const servicesPassed = serviceChecks === "not-configured" || serviceChecks.every((check) => check.status === "matched");
 
   return {
@@ -196,7 +243,10 @@ async function main(): Promise<void> {
 function extractRecords(payload: unknown): Record<string, unknown>[] {
   if (Array.isArray(payload)) return payload.filter(isRecord);
   if (!isRecord(payload)) return [];
-  const envelopeKeys = ["data", "items", "records", "results", "customers", "employees", "locations", "services", "appointments"];
+  const envelopeKeys = [
+    "data", "items", "records", "results", "customers", "employees", "locations",
+    "services", "appointments", "available_times", "availableTimes", "slots", "times"
+  ];
   for (const key of envelopeKeys) {
     const value = payload[key];
     if (Array.isArray(value)) return value.filter(isRecord);
