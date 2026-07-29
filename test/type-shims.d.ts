@@ -3,6 +3,10 @@ declare namespace NodeJS {
 }
 declare const process: {
   env: NodeJS.ProcessEnv;
+  argv: string[];
+  stdout: { write(value: string): void };
+  stderr: { write(value: string): void };
+  exitCode?: number;
   exit(code?: number): never;
   once(event: string, listener: () => void): void;
 };
@@ -21,6 +25,9 @@ declare module "node:fs" {
 declare module "node:path" {
   export const dirname: (...args: any[]) => string;
   export const resolve: (...args: any[]) => string;
+}
+declare module "node:url" {
+  export const pathToFileURL: (path: string) => { href: string };
 }
 declare module "@modelcontextprotocol/sdk/server/mcp.js" {
   export class McpServer {
