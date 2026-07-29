@@ -65,7 +65,7 @@ export class TrafftClient {
     const started = Date.now();
     try {
       assertReadOnlyMethod("POST", this.authPath, this.authPath);
-      const response = await this.fetchImpl(joinApiUrl(this.origin, this.apiPath, this.authPath), {
+      const response = await this.fetchImpl(new URL(this.authPath, `${this.origin}/`).toString(), {
         method: "POST",
         headers: {
           "Accept": "application/json",
@@ -192,7 +192,6 @@ function retryDelayMs(response: Response, attempt: number): number {
   }
   return Math.min(500 * 2 ** attempt, 5_000);
 }
-
 
 async function readBodyWithLimit(response: Response, maxBytes: number): Promise<string> {
   if (!response.body) return "";
