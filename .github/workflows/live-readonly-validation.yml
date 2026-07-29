@@ -1,0 +1,67 @@
+name: Controlled Trafft read-only validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "Type READ_ONLY_ONLY to confirm no writes"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: trafft-readonly-validation
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    if: github.event.inputs.confirmation == 'READ_ONLY_ONLY'
+    environment: trafft-validation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out reviewed candidate
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          ref: e8c92a2f8ca1daf00cb9d3c30ed16c71bf67c121
+          persist-credentials: false
+
+      - name: Set up Node 20
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install reviewed dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Re-run non-live gates
+        run: npm run check
+
+      - name: Run controlled live read-only validation
+        env:
+          TRAFFT_API_URL: ${{ secrets.TRAFFT_API_URL }}
+          TRAFFT_API_PATH: /api/v2
+          TRAFFT_AUTH_PATH: /auth/token
+          TRAFFT_ALLOWED_HOSTS: ${{ secrets.TRAFFT_ALLOWED_HOSTS }}
+          TRAFFT_CLIENT_ID: ${{ secrets.TRAFFT_CLIENT_ID }}
+          TRAFFT_CLIENT_SECRET: ${{ secrets.TRAFFT_CLIENT_SECRET }}
+          TRAFFT_EXPECTED_SERVICES_JSON: ${{ secrets.TRAFFT_EXPECTED_SERVICES_JSON }}
+          TRAFFT_AUDIT_LOG_PATH: ${{ runner.temp }}/trafft-readonly-audit.jsonl
+          TRAFFT_ENABLE_EXPERIMENTAL_READS: "false"
+          TRAFFT_LIVE_VALIDATION_ACK: READ_ONLY_ONLY
+          TRAFFT_TIMEOUT_MS: "30000"
+          TRAFFT_MAX_HTTP_BODY_BYTES: "5000000"
+          TRAFFT_MAX_RESPONSE_CHARS: "20000"
+          TRAFFT_MAX_RETRIES: "1"
+        run: npm run validate:live
+
+      - name: Verify audit remained metadata-only
+        if: always()
+        env:
+          TRAFFT_AUDIT_LOG_PATH: ${{ runner.temp }}/trafft-readonly-audit.jsonl
+          TRAFFT_CLIENT_ID: ${{ secrets.TRAFFT_CLIENT_ID }}
+          TRAFFT_CLIENT_SECRET: ${{ secrets.TRAFFT_CLIENT_SECRET }}
+        run: npm run validate:audit
