@@ -6,17 +6,11 @@ This repository is a clean derivative of `mjmirza/trafft-mcp` at commit `c879311
 
 ## Release status
 
-**Security candidate—not yet a production release.**
+**Live-validated read-only candidate—not yet a tagged production release.**
 
-The local mock and policy gates pass, but production readiness requires all of the following on the public repository:
+The committed lockfile, Node 20 build, MCP protocol smoke test, high-severity dependency audit, package inspection, authentication flow, core list/detail reads, and privacy-minimized audit checks have passed. The protected release workflow also performs a bounded one-day availability read using a service returned by Trafft.
 
-1. A registry-backed dependency install and committed lockfile.
-2. A clean TypeScript build on Node 20.
-3. A clean `npm audit --audit-level=high` result.
-4. A controlled read-only authentication and endpoint verification against a real Trafft account.
-5. Confirmation that the returned service, employee, capacity, appointment-list, and customer schemas match the current Trafft account.
-
-Do not call this project “Trafft-verified” or “production-ready” before those gates pass.
+Before the first tagged release, complete the account-specific service/capacity reconciliation, employee-assignment review, and pagination verification recorded in `docs/RELEASE_CHECKLIST.md`. Do not call this project affiliated with, endorsed by, or officially verified by Trafft.
 
 ## Stable V1 tools
 
@@ -35,6 +29,8 @@ Do not call this project “Trafft-verified” or “production-ready” before 
 - `compare_services_to_expected`
 
 Trafft's published collection documents appointment listing but not a read-by-ID appointment endpoint, so stable V1 deliberately exposes appointments as list-only.
+
+`get_available_times` accepts one service and one date, then maps them to Trafft's documented `calendar_start_date`, `calendar_end_date`, and `service` query parameters. Optional employee, location, and additional-guest inputs are mapped to the published API names.
 
 No create, update, cancel, reschedule, pricing-write, webhook-write, booking, coupon, or delete tool is compiled into stable V1.
 
@@ -75,7 +71,7 @@ Never commit credentials or paste them into chat, issues, screenshots, fixtures,
 
 ## Community
 
-Contributions are welcome under `CONTRIBUTING.md`. V1 deliberately remains read-only. Security concerns should be reported privately through GitHub Security Advisories after the repository is published.
+Contributions are welcome under `CONTRIBUTING.md`. V1 deliberately remains read-only. Security concerns should be reported privately through GitHub Security Advisories.
 
 ## Independence
 
