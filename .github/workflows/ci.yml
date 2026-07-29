@@ -4,7 +4,7 @@ on:
     branches: [main, "hardening/**"]
   pull_request:
 permissions:
-  contents: write
+  contents: read
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -13,38 +13,9 @@ jobs:
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
           node-version: "20"
-      - name: Detect committed lockfile
-        id: lockfile
-        shell: bash
-        run: |
-          if [ -f package-lock.json ]; then
-            echo "present=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "present=false" >> "$GITHUB_OUTPUT"
-          fi
+          cache: npm
       - name: Install without lifecycle scripts
-        run: |
-          if [ -f package-lock.json ]; then
-            npm ci --ignore-scripts
-          else
-            npm install --ignore-scripts
-          fi
+        run: npm ci --ignore-scripts
       - run: npm run check
       - run: npm audit --audit-level=high
       - run: npm pack --dry-run
-      - name: Commit bootstrap lockfile only
-        if: github.event_name == 'push' && github.ref == 'refs/heads/hardening/read-only-v1' && steps.lockfile.outputs.present == 'false'
-        shell: bash
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- package-lock.json
-          test "$(git diff --cached --name-only)" = "package-lock.json"
-          git commit -m "chore: commit reviewed dependency lockfile"
-          git push origin HEAD:hardening/read-only-v1
-      - name: Upload lockfile for review
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: package-lock
-          path: package-lock.json
-          if-no-files-found: error
