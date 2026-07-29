@@ -41,7 +41,7 @@ test("joins only normalized API paths", () => {
   assert.throws(() => joinApiUrl("https://socialmedium.trafft.com", "/api/v2", "/../admin"), /unsafe/);
 });
 
-test("authenticates and performs a GET with redirects disabled", async () => {
+test("authenticates at the root path and performs an API-prefixed GET with redirects disabled", async () => {
   const calls = [];
   const fetchImpl = async (url, init) => {
     calls.push({ url: String(url), init });
@@ -52,6 +52,8 @@ test("authenticates and performs a GET with redirects disabled", async () => {
   const data = await client.get("/services");
   assert.deepEqual(data, [{ id: 1, name: "Service" }]);
   assert.equal(calls.length, 2);
+  assert.equal(calls[0].url, "https://socialmedium.trafft.com/auth/token");
+  assert.equal(calls[1].url, "https://socialmedium.trafft.com/api/v2/services");
   assert.equal(calls[0].init.redirect, "error");
   assert.equal(calls[1].init.redirect, "error");
   assert.equal(calls[1].init.headers.Authorization, "Bearer token-1");
@@ -128,7 +130,6 @@ test("records network failures without exposing the underlying message", async (
   });
   assert.equal(events.at(-1).status, "error");
 });
-
 
 test("returns valid JSON within the configured MCP response limit", () => {
   const result = textResult({ privateData: "x".repeat(5000) }, 1000);
