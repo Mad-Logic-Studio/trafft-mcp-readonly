@@ -25,7 +25,7 @@ jobs:
       - name: Check out reviewed candidate
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
-          ref: 3caade305dade54a3ee400f424c029dd591076db
+          ref: 07754bb06d24e237763604e37bc08704195b99cd
           persist-credentials: false
 
       - name: Set up Node 20
