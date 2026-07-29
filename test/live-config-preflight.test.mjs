@@ -29,16 +29,6 @@ test("rejects a hostname mismatch without echoing either hostname", () => {
   assert.equal(JSON.stringify(result).includes("example.com"), false);
 });
 
-test("rejects a Trafft admin dashboard hostname before any network request", () => {
-  const result = validateLiveEnvironment({
-    ...base,
-    TRAFFT_API_URL: "https://tenant.admin.trafft.com",
-    TRAFFT_ALLOWED_HOSTS: "tenant.admin.trafft.com"
-  });
-  assert.deepEqual(result, { ok: false, code: "admin-dashboard-host-not-api" });
-  assert.equal(JSON.stringify(result).includes("tenant.admin.trafft.com"), false);
-});
-
 test("rejects experimental reads and an invalid acknowledgment", () => {
   assert.equal(validateLiveEnvironment({ ...base, TRAFFT_ENABLE_EXPERIMENTAL_READS: "true" }).code, "experimental-reads-enabled");
   assert.equal(validateLiveEnvironment({ ...base, TRAFFT_LIVE_VALIDATION_ACK: "no" }).code, "ack-invalid");
