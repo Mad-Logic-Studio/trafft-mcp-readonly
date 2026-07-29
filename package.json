@@ -1,0 +1,46 @@
+{
+  "name": "@mad-logic-studio/trafft-mcp-readonly",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Hardened community read-only MCP server for auditing a Trafft account.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node build/index.js",
+    "test": "npm run test:core",
+    "test:core": "bash scripts/test-core.sh && node scripts/policy-check.mjs && tsc -p tsconfig.syntax.json",
+    "check": "npm run test:core && npm run build",
+    "audit:dependencies": "npm audit --audit-level=high",
+    "inspector": "npx --yes @modelcontextprotocol/inspector@0.16.8 build/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "dotenv": "17.4.2",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "25.9.2",
+    "typescript": "6.0.3"
+  },
+  "files": [
+    "build",
+    "README.md",
+    "LICENSE",
+    "NOTICE",
+    "SECURITY.md",
+    "UPSTREAM.md",
+    "config"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mad-Logic-Studio/trafft-mcp-readonly.git"
+  },
+  "homepage": "https://github.com/Mad-Logic-Studio/trafft-mcp-readonly#readme",
+  "bugs": {
+    "url": "https://github.com/Mad-Logic-Studio/trafft-mcp-readonly/issues"
+  }
+}
