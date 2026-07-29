@@ -46,7 +46,7 @@ jobs:
                 url: request.url,
                 urlObject: request.urlObject,
                 description: typeof request.description === "string"
-                  ? request.description.slice(0, 5000)
+                  ? request.description.slice(0, 10000)
                   : request.description
               });
             }
@@ -54,5 +54,6 @@ jobs:
           }
           walk(document);
           if (matches.length !== 2) throw new Error(`Expected two read requests; found ${matches.length}.`);
-          console.log(JSON.stringify(matches, null, 2));
+          const encoded = Buffer.from(JSON.stringify(matches), "utf8").toString("base64");
+          console.log(`TRAFFT_PUBLIC_CONTRACT_B64=${encoded}`);
           NODE
