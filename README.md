@@ -14,7 +14,7 @@ The local mock and policy gates pass, but production readiness requires all of t
 2. A clean TypeScript build on Node 20.
 3. A clean `npm audit --audit-level=high` result.
 4. A controlled read-only authentication and endpoint verification against a real Trafft account.
-5. Confirmation that the returned service, employee, capacity, appointment, and customer schemas match the current Trafft account.
+5. Confirmation that the returned service, employee, capacity, appointment-list, and customer schemas match the current Trafft account.
 
 Do not call this project “Trafft-verified” or “production-ready” before those gates pass.
 
@@ -28,12 +28,13 @@ Do not call this project “Trafft-verified” or “production-ready” before 
 - `list_locations`
 - `get_location`
 - `list_appointments`
-- `get_appointment`
 - `list_customers`
 - `get_customer`
 - `find_duplicate_customers`
 - `get_available_times`
 - `compare_services_to_expected`
+
+Trafft's published collection documents appointment listing but not a read-by-ID appointment endpoint, so stable V1 deliberately exposes appointments as list-only.
 
 No create, update, cancel, reschedule, pricing-write, webhook-write, booking, coupon, or delete tool is compiled into stable V1.
 
