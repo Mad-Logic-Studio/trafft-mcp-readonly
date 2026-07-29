@@ -17,6 +17,7 @@
     "test:live-harness": "node --test test/live-validation.test.mjs",
     "check": "npm run test:core && npm run build && npm run test:protocol && npm run test:live-harness",
     "validate:live": "node build/live-validation.js",
+    "validate:audit": "node scripts/check-live-audit.mjs",
     "audit:dependencies": "npm audit --audit-level=high",
     "inspector": "npx --yes @modelcontextprotocol/inspector@0.16.8 build/index.js"
   },
