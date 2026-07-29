@@ -25,7 +25,7 @@ jobs:
       - name: Check out reviewed candidate
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
-          ref: 032d0713f2451d416ab6a400dbd9a1754a0b2343
+          ref: 1976b341ee6a535863d29a616270b89a408a2d71
           persist-credentials: false
 
       - name: Set up Node 20
@@ -106,7 +106,7 @@ jobs:
         if: always()
         env:
           TRAFFT_AUDIT_LOG_PATH: ${{ runner.temp }}/trafft-readonly-audit.jsonl
-          TRAFFT_AUDIT_MIN_GET_EVENTS: "5"
+          TRAFFT_AUDIT_MIN_GET_EVENTS: "6"
           TRAFFT_CLIENT_ID: ${{ secrets.TRAFFT_CLIENT_ID }}
           TRAFFT_CLIENT_SECRET: ${{ secrets.TRAFFT_CLIENT_SECRET }}
         shell: bash
