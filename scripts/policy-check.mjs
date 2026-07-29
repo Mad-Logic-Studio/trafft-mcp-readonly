@@ -25,7 +25,7 @@ if (!indexSource.includes("if (config.enableExperimentalReads)")) failures.push(
 const stableExpected = new Set([
   "list_services", "get_service", "find_services_by_name",
   "list_employees", "get_employee", "list_locations", "get_location",
-  "list_appointments", "get_appointment", "list_customers", "get_customer",
+  "list_appointments", "list_customers", "get_customer",
   "find_duplicate_customers", "get_available_times", "compare_services_to_expected"
 ]);
 const experimental = new Set(["inspect_webhooks", "inspect_notification_settings", "inspect_working_hours", "inspect_special_days", "inspect_days_off", "inspect_account_settings"]);
