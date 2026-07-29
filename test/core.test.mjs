@@ -20,6 +20,8 @@ const options = (fetchImpl, overrides = {}) => ({
   ...overrides
 });
 
+const isAuthUrl = (url) => String(url).endsWith("/api/v2/token");
+
 test("requires HTTPS", () => {
   assert.throws(() => validateApiTarget("http://socialmedium.trafft.com", ["socialmedium.trafft.com"]), /HTTPS/);
 });
@@ -29,10 +31,10 @@ test("requires an exact allowlisted hostname", () => {
 });
 
 test("blocks every write except the authentication POST", () => {
-  assert.doesNotThrow(() => assertReadOnlyMethod("POST", "/auth/token", "/auth/token"));
-  assert.doesNotThrow(() => assertReadOnlyMethod("GET", "/services", "/auth/token"));
+  assert.doesNotThrow(() => assertReadOnlyMethod("POST", "/token", "/token"));
+  assert.doesNotThrow(() => assertReadOnlyMethod("GET", "/services", "/token"));
   for (const method of ["POST", "PUT", "PATCH", "DELETE"]) {
-    assert.throws(() => assertReadOnlyMethod(method, "/customers/1", "/auth/token"), /blocked/);
+    assert.throws(() => assertReadOnlyMethod(method, "/customers/1", "/token"), /blocked/);
   }
 });
 
@@ -41,21 +43,23 @@ test("joins only normalized API paths", () => {
   assert.throws(() => joinApiUrl("https://socialmedium.trafft.com", "/api/v2", "/../admin"), /unsafe/);
 });
 
-test("authenticates at the root path and performs an API-prefixed GET with redirects disabled", async () => {
+test("authenticates with the published client-credentials form and performs an API GET", async () => {
   const calls = [];
   const fetchImpl = async (url, init) => {
     calls.push({ url: String(url), init });
-    if (String(url).endsWith("/auth/token")) return jsonResponse({ token: "token-1" });
+    if (isAuthUrl(url)) return jsonResponse({ access_token: "token-1" });
     return jsonResponse([{ id: 1, name: "Service" }]);
   };
   const client = new TrafftClient(options(fetchImpl));
   const data = await client.get("/services");
   assert.deepEqual(data, [{ id: 1, name: "Service" }]);
   assert.equal(calls.length, 2);
-  assert.equal(calls[0].url, "https://socialmedium.trafft.com/auth/token");
+  assert.equal(calls[0].url, "https://socialmedium.trafft.com/api/v2/token");
   assert.equal(calls[1].url, "https://socialmedium.trafft.com/api/v2/services");
   assert.equal(calls[0].init.redirect, "error");
   assert.equal(calls[1].init.redirect, "error");
+  assert.equal(calls[0].init.headers["Content-Type"], "application/x-www-form-urlencoded");
+  assert.equal(calls[0].init.body, "grant_type=client_credentials&client_id=id&client_secret=secret");
   assert.equal(calls[1].init.headers.Authorization, "Bearer token-1");
 });
 
@@ -63,9 +67,9 @@ test("reauthenticates once after a 401", async () => {
   let authCount = 0;
   let serviceCount = 0;
   const fetchImpl = async (url) => {
-    if (String(url).endsWith("/auth/token")) {
+    if (isAuthUrl(url)) {
       authCount += 1;
-      return jsonResponse({ token: `token-${authCount}` });
+      return jsonResponse({ access_token: `token-${authCount}` });
     }
     serviceCount += 1;
     return serviceCount === 1 ? jsonResponse({ message: "expired" }, 401) : jsonResponse({ ok: true });
@@ -79,7 +83,7 @@ test("reauthenticates once after a 401", async () => {
 test("retries a transient GET without retrying forever", async () => {
   let serviceCount = 0;
   const fetchImpl = async (url) => {
-    if (String(url).endsWith("/auth/token")) return jsonResponse({ token: "token" });
+    if (isAuthUrl(url)) return jsonResponse({ access_token: "token" });
     serviceCount += 1;
     return serviceCount < 3 ? jsonResponse({ message: "busy" }, 503) : jsonResponse({ ok: true });
   };
@@ -90,7 +94,7 @@ test("retries a transient GET without retrying forever", async () => {
 
 test("does not include an upstream error body in thrown errors", async () => {
   const fetchImpl = async (url) => {
-    if (String(url).endsWith("/auth/token")) return jsonResponse({ token: "token" });
+    if (isAuthUrl(url)) return jsonResponse({ access_token: "token" });
     return jsonResponse({ customerEmail: "private@example.com", secret: "leak-me" }, 500, { "x-request-id": "req-123" });
   };
   const client = new TrafftClient(options(fetchImpl, { maxRetries: 0 }));
@@ -109,7 +113,7 @@ test("rejects query strings and encoded traversal in configured paths", () => {
 
 test("enforces the body limit while streaming", async () => {
   const fetchImpl = async (url) => {
-    if (String(url).endsWith("/auth/token")) return jsonResponse({ token: "token" });
+    if (isAuthUrl(url)) return jsonResponse({ access_token: "token" });
     return new Response(JSON.stringify({ value: "x".repeat(200) }), { status: 200, headers: { "content-type": "application/json" } });
   };
   const client = new TrafftClient(options(fetchImpl, { maxHttpBodyBytes: 64 }));
@@ -119,7 +123,7 @@ test("enforces the body limit while streaming", async () => {
 test("records network failures without exposing the underlying message", async () => {
   const events = [];
   const fetchImpl = async (url) => {
-    if (String(url).endsWith("/auth/token")) return jsonResponse({ token: "token" });
+    if (isAuthUrl(url)) return jsonResponse({ access_token: "token" });
     throw new Error("socket failed with secret-value");
   };
   const client = new TrafftClient(options(fetchImpl, { audit: (event) => events.push(event) }));
