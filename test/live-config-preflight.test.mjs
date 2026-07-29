@@ -8,7 +8,7 @@ const base = {
   TRAFFT_CLIENT_ID: "id",
   TRAFFT_CLIENT_SECRET: "secret",
   TRAFFT_API_PATH: "/api/v2",
-  TRAFFT_AUTH_PATH: "/auth/token",
+  TRAFFT_AUTH_PATH: "/token",
   TRAFFT_ENABLE_EXPERIMENTAL_READS: "false",
   TRAFFT_LIVE_VALIDATION_ACK: "READ_ONLY_ONLY"
 };
@@ -27,6 +27,11 @@ test("rejects a hostname mismatch without echoing either hostname", () => {
   const result = validateLiveEnvironment({ ...base, TRAFFT_ALLOWED_HOSTS: "other.example.com" });
   assert.deepEqual(result, { ok: false, code: "api-host-not-allowlisted" });
   assert.equal(JSON.stringify(result).includes("example.com"), false);
+});
+
+test("rejects obsolete or unexpected authentication paths", () => {
+  assert.equal(validateLiveEnvironment({ ...base, TRAFFT_AUTH_PATH: "/auth/token" }).code, "auth-path-unexpected");
+  assert.equal(validateLiveEnvironment({ ...base, TRAFFT_AUTH_PATH: "/api/v2/token" }).code, "auth-path-unexpected");
 });
 
 test("rejects experimental reads and an invalid acknowledgment", () => {
