@@ -19,3 +19,5 @@ jobs:
       - run: npm run check
       - run: npm audit --audit-level=high
       - run: npm pack --dry-run
+      - name: Inspect published Trafft authentication docs
+        run: node scripts/inspect-public-trafft-docs.mjs
