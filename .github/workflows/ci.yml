@@ -31,6 +31,23 @@ jobs:
           if (!response.ok) throw new Error(`Published collection fetch failed (${response.status}).`);
           const document = await response.json();
           const matches = [];
+          function collectEvidence(value, path = "request", output = []) {
+            if (value === null || value === undefined) return output;
+            if (typeof value === "string") {
+              if (value.length <= 500 && /api\/v2|appointment|available|service|employee|location|date|time|page|limit|start|end|timezone|_id/i.test(`${path} ${value}`)) {
+                output.push({ path, value });
+              }
+              return output;
+            }
+            if (Array.isArray(value)) {
+              value.forEach((entry, index) => collectEvidence(entry, `${path}[${index}]`, output));
+              return output;
+            }
+            if (typeof value === "object") {
+              for (const [key, entry] of Object.entries(value)) collectEvidence(entry, `${path}.${key}`, output);
+            }
+            return output;
+          }
           function walk(node) {
             if (!node || typeof node !== "object") return;
             if (Array.isArray(node)) {
@@ -38,36 +55,18 @@ jobs:
               return;
             }
             const request = node.request;
-            if (request && typeof request === "object") {
-              const name = String(node.name ?? "");
-              const raw = typeof request.url?.raw === "string"
-                ? request.url.raw
-                : `/${Array.isArray(request.url?.path) ? request.url.path.join("/") : ""}`;
-              if (/appointment|available.?time/i.test(`${name} ${raw}`)) {
-                const bodyMode = request.body?.mode ?? "none";
-                const bodyKeys = bodyMode === "urlencoded" && Array.isArray(request.body?.urlencoded)
-                  ? request.body.urlencoded.map((entry) => entry?.key).filter(Boolean)
-                  : bodyMode === "formdata" && Array.isArray(request.body?.formdata)
-                    ? request.body.formdata.map((entry) => entry?.key).filter(Boolean)
-                    : bodyMode === "raw" ? ["raw"] : [];
-                matches.push({
-                  name,
-                  method: request.method,
-                  url: raw,
-                  queryKeys: Array.isArray(request.url?.query)
-                    ? request.url.query.map((entry) => entry?.key).filter(Boolean)
-                    : [],
-                  pathVariableKeys: Array.isArray(request.url?.variable)
-                    ? request.url.variable.map((entry) => entry?.key).filter(Boolean)
-                    : [],
-                  bodyMode,
-                  bodyKeys
-                });
-              }
+            const name = String(node.name ?? "");
+            if (request && typeof request === "object" && /^(List Appointments|Available times)$/i.test(name)) {
+              matches.push({
+                name,
+                requestKeys: Object.keys(request).sort(),
+                urlType: typeof request.url,
+                evidence: collectEvidence(request)
+              });
             }
             for (const value of Object.values(node)) walk(value);
           }
           walk(document);
-          if (matches.length === 0) throw new Error("No appointment or available-time requests found.");
+          if (matches.length !== 2) throw new Error(`Expected two read requests; found ${matches.length}.`);
           console.log(JSON.stringify(matches, null, 2));
           NODE
