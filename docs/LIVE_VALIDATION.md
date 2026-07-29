@@ -11,6 +11,7 @@ The validation command:
 - sends only `GET` requests after authentication;
 - keeps experimental endpoints disabled;
 - requests small first pages;
+- uses the first returned service ID for one bounded availability GET covering one date only;
 - does not print or upload raw Trafft responses;
 - reports endpoint status, record presence, recognized structural fields, and optional expected-service pass/fail labels only;
 - stores a local JSONL audit containing method, sanitized path, status, HTTP status, duration, attempt, and request ID only.
@@ -43,7 +44,7 @@ Example shape:
 ]
 ```
 
-The validator prints `label` and `matched`, `missing`, or `mismatch`. It never prints the API's actual service name, price, capacity, or returned record.
+The validator prints `label` and `matched`, `missing`, or `mismatch`. It never prints the API's actual service name, price, capacity, availability slot, or returned record.
 
 ## Fixed workflow settings
 
@@ -64,9 +65,10 @@ A pass requires:
 2. list reads succeed for services, employees, locations, appointments, and customers;
 3. documented detail reads succeed for services, employees, locations, and customers when a first-page record exists;
 4. appointments remain list-only because Trafft's published collection does not document a read-by-ID appointment endpoint;
-5. optional expected-service checks all match;
-6. the audit file contains only the approved metadata keys;
-7. no experimental path is requested;
-8. no non-authentication write method is sent.
+5. a one-service, one-day GET to `/available-times` succeeds using the documented `calendar_start_date`, `calendar_end_date`, and `service` parameters;
+6. optional expected-service checks all match;
+7. the audit file contains only the approved metadata keys;
+8. no experimental path is requested;
+9. no non-authentication write method is sent.
 
 The live workflow must remain manual and must not run on pull requests, forks, schedules, or ordinary pushes.
