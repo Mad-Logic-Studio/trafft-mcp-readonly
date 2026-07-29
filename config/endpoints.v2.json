@@ -1,0 +1,35 @@
+{
+  "manifestVersion": 1,
+  "reviewedAt": "2026-07-28",
+  "apiPath": "/api/v2",
+  "status": "pre-live-readonly-validation",
+  "sources": [
+    "https://trafft.com/docs/custom-features/api/",
+    "https://www.postman.com/trafft/trafft-public-workspace/overview"
+  ],
+  "stableReadCandidates": [
+    { "name": "customers.list", "method": "GET", "path": "/customers" },
+    { "name": "customers.get", "method": "GET", "path": "/customers/{id}" },
+    { "name": "employees.list", "method": "GET", "path": "/employees" },
+    { "name": "employees.get", "method": "GET", "path": "/employees/{id}" },
+    { "name": "locations.list", "method": "GET", "path": "/locations" },
+    { "name": "locations.get", "method": "GET", "path": "/locations/{id}" },
+    { "name": "services.list", "method": "GET", "path": "/services" },
+    { "name": "services.get", "method": "GET", "path": "/services/{id}" },
+    { "name": "appointments.list", "method": "GET", "path": "/appointments" },
+    { "name": "appointments.get", "method": "GET", "path": "/appointments/{id}" },
+    { "name": "availability.list", "method": "GET", "path": "/available-times" }
+  ],
+  "experimentalReadCandidates": [
+    { "name": "webhooks.list", "method": "GET", "path": "/webhooks" },
+    { "name": "notifications.list", "method": "GET", "path": "/notifications" },
+    { "name": "workingHours.list", "method": "GET", "path": "/working-hours" },
+    { "name": "specialDays.list", "method": "GET", "path": "/special-days" },
+    { "name": "daysOff.list", "method": "GET", "path": "/days-off" },
+    { "name": "settings.get", "method": "GET", "path": "/settings" }
+  ],
+  "writes": {
+    "compiledIntoV1": false,
+    "deleteTools": false
+  }
+}

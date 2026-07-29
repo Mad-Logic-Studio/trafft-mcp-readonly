@@ -1,0 +1,32 @@
+name: CI
+on:
+  push:
+    branches: [main, "hardening/**"]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: "20"
+          cache: npm
+      - name: Install without lifecycle scripts
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci --ignore-scripts
+          else
+            npm install --ignore-scripts
+          fi
+      - run: npm run check
+      - run: npm audit --audit-level=high
+      - run: npm pack --dry-run
+      - name: Upload generated lockfile for bootstrap review
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: package-lock
+          path: package-lock.json
+          if-no-files-found: error
