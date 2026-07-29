@@ -62,10 +62,11 @@ A pass requires:
 
 1. authentication succeeds;
 2. list reads succeed for services, employees, locations, appointments, and customers;
-3. detail reads succeed when a first-page record exists;
-4. optional expected-service checks all match;
-5. the audit file contains only the approved metadata keys;
-6. no experimental path is requested;
-7. no non-authentication write method is sent.
+3. documented detail reads succeed for services, employees, locations, and customers when a first-page record exists;
+4. appointments remain list-only because Trafft's published collection does not document a read-by-ID appointment endpoint;
+5. optional expected-service checks all match;
+6. the audit file contains only the approved metadata keys;
+7. no experimental path is requested;
+8. no non-authentication write method is sent.
 
 The live workflow must remain manual and must not run on pull requests, forks, schedules, or ordinary pushes.
