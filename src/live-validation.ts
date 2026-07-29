@@ -48,7 +48,7 @@ const PROBES: readonly ProbeDefinition[] = [
   { name: "services", listPath: "/services?limit=10&page=1", detailBasePath: "/services" },
   { name: "employees", listPath: "/employees?limit=10&page=1", detailBasePath: "/employees" },
   { name: "locations", listPath: "/locations?limit=10&page=1", detailBasePath: "/locations" },
-  { name: "appointments", listPath: "/appointments?limit=5&page=1", detailBasePath: "/appointments" },
+  { name: "appointments", listPath: "/appointments?limit=5&page=1" },
   { name: "customers", listPath: "/customers?limit=1&page=1", detailBasePath: "/customers" }
 ] as const;
 
