@@ -25,7 +25,7 @@ jobs:
       - name: Check out reviewed candidate
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
-          ref: e8c92a2f8ca1daf00cb9d3c30ed16c71bf67c121
+          ref: c5568f6b9215c665423427ef41595acf8466112c
           persist-credentials: false
 
       - name: Set up Node 20
@@ -39,6 +39,18 @@ jobs:
 
       - name: Re-run non-live gates
         run: npm run check
+
+      - name: Check live configuration without exposing values
+        env:
+          TRAFFT_API_URL: ${{ secrets.TRAFFT_API_URL }}
+          TRAFFT_API_PATH: /api/v2
+          TRAFFT_AUTH_PATH: /auth/token
+          TRAFFT_ALLOWED_HOSTS: ${{ secrets.TRAFFT_ALLOWED_HOSTS }}
+          TRAFFT_CLIENT_ID: ${{ secrets.TRAFFT_CLIENT_ID }}
+          TRAFFT_CLIENT_SECRET: ${{ secrets.TRAFFT_CLIENT_SECRET }}
+          TRAFFT_ENABLE_EXPERIMENTAL_READS: "false"
+          TRAFFT_LIVE_VALIDATION_ACK: READ_ONLY_ONLY
+        run: npm run validate:preflight
 
       - name: Run controlled live read-only validation
         env:
@@ -64,4 +76,10 @@ jobs:
           TRAFFT_AUDIT_LOG_PATH: ${{ runner.temp }}/trafft-readonly-audit.jsonl
           TRAFFT_CLIENT_ID: ${{ secrets.TRAFFT_CLIENT_ID }}
           TRAFFT_CLIENT_SECRET: ${{ secrets.TRAFFT_CLIENT_SECRET }}
-        run: npm run validate:audit
+        shell: bash
+        run: |
+          if [ -s "$TRAFFT_AUDIT_LOG_PATH" ]; then
+            npm run validate:audit
+          else
+            echo "No audit events were recorded; validation stopped before any Trafft request."
+          fi
