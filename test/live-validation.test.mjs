@@ -19,7 +19,7 @@ test("live validator emits only sanitized metadata and expected-service results"
     ["/employees/7", { id: 7, name: "Private Employee", services: [11], working_hours: [] }],
     ["/locations?limit=10&page=1", { data: [{ id: 3, name: "Private Location", phone: "+18015550123" }] }],
     ["/locations/3", { id: 3, name: "Private Location" }],
-    ["/appointments?limit=5&page=1", { data: [] }],
+    ["/appointments?limit=5&page=1", { data: [{ id: 44, status: "approved" }] }],
     ["/customers?limit=1&page=1", { data: [{ id: 22, name: "Private Customer", email: "sunflower@example.com" }] }],
     ["/customers/22", { id: 22, name: "Private Customer", phone: "+18015550123" }]
   ]);
@@ -45,6 +45,8 @@ test("live validator emits only sanitized metadata and expected-service results"
   assert.ok(requested.includes("/employees/7"));
   assert.ok(requested.includes("/locations/3"));
   assert.ok(requested.includes("/customers/22"));
+  assert.equal(requested.includes("/appointments/44"), false);
+  assert.equal(summary.probes.find((probe) => probe.name === "appointments")?.detail, "skipped");
 
   const serialized = JSON.stringify(summary);
   for (const value of sensitiveValues) assert.equal(serialized.includes(value), false);
