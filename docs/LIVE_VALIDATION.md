@@ -6,7 +6,8 @@ This project must not connect to a Trafft account until the non-live CI gates ar
 
 The validation command:
 
-- authenticates with `POST /auth/token` only;
+- authenticates with `POST /api/v2/token` only;
+- sends `application/x-www-form-urlencoded` fields `grant_type=client_credentials`, `client_id`, and `client_secret`;
 - sends only `GET` requests after authentication;
 - keeps experimental endpoints disabled;
 - requests small first pages;
@@ -49,7 +50,7 @@ The validator prints `label` and `matched`, `missing`, or `mismatch`. It never p
 The protected workflow supplies these non-secret values itself:
 
 - `TRAFFT_API_PATH=/api/v2`
-- `TRAFFT_AUTH_PATH=/auth/token`
+- `TRAFFT_AUTH_PATH=/token` (relative to `TRAFFT_API_PATH`)
 - `TRAFFT_ENABLE_EXPERIMENTAL_READS=false`
 - `TRAFFT_LIVE_VALIDATION_ACK=READ_ONLY_ONLY`
 - small response and retry limits
