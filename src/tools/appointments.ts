@@ -18,11 +18,4 @@ export function registerAppointmentTools(server: McpServer, client: TrafftClient
     try { return textResult(await client.get(`/appointments${buildQuery(args)}`), maxChars); }
     catch (error) { return errorResult(error); }
   });
-
-  server.tool("get_appointment", "Get one appointment by ID without changing it.", {
-    id: resourceId
-  }, async ({ id }) => {
-    try { return textResult(await client.get(`/appointments/${encodeURIComponent(String(id))}`), maxChars); }
-    catch (error) { return errorResult(error); }
-  });
 }
