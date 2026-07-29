@@ -19,3 +19,55 @@ jobs:
       - run: npm run check
       - run: npm audit --audit-level=high
       - run: npm pack --dry-run
+      - name: Inspect published Trafft read parameter contracts
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          const source = "https://documenter.gw.postman.com/api/collections/1487056/2sAY4x9MRe?segregateAuth=true&versionTag=latest";
+          const response = await fetch(source, {
+            redirect: "error",
+            headers: { accept: "application/json", "user-agent": "Mad-Logic-Studio-contract-review/1.0" }
+          });
+          if (!response.ok) throw new Error(`Published collection fetch failed (${response.status}).`);
+          const document = await response.json();
+          const matches = [];
+          function walk(node) {
+            if (!node || typeof node !== "object") return;
+            if (Array.isArray(node)) {
+              for (const value of node) walk(value);
+              return;
+            }
+            const request = node.request;
+            if (request && typeof request === "object") {
+              const name = String(node.name ?? "");
+              const raw = typeof request.url?.raw === "string"
+                ? request.url.raw
+                : `/${Array.isArray(request.url?.path) ? request.url.path.join("/") : ""}`;
+              if (/appointment|available.?time/i.test(`${name} ${raw}`)) {
+                const bodyMode = request.body?.mode ?? "none";
+                const bodyKeys = bodyMode === "urlencoded" && Array.isArray(request.body?.urlencoded)
+                  ? request.body.urlencoded.map((entry) => entry?.key).filter(Boolean)
+                  : bodyMode === "formdata" && Array.isArray(request.body?.formdata)
+                    ? request.body.formdata.map((entry) => entry?.key).filter(Boolean)
+                    : bodyMode === "raw" ? ["raw"] : [];
+                matches.push({
+                  name,
+                  method: request.method,
+                  url: raw,
+                  queryKeys: Array.isArray(request.url?.query)
+                    ? request.url.query.map((entry) => entry?.key).filter(Boolean)
+                    : [],
+                  pathVariableKeys: Array.isArray(request.url?.variable)
+                    ? request.url.variable.map((entry) => entry?.key).filter(Boolean)
+                    : [],
+                  bodyMode,
+                  bodyKeys
+                });
+              }
+            }
+            for (const value of Object.values(node)) walk(value);
+          }
+          walk(document);
+          if (matches.length === 0) throw new Error("No appointment or available-time requests found.");
+          console.log(JSON.stringify(matches, null, 2));
+          NODE
