@@ -31,7 +31,7 @@ async function main(): Promise<void> {
 
   await client.authenticate();
 
-  const server = new McpServer({ name: "trafft-readonly", version: "0.1.0" });
+  const server = new McpServer({ name: "trafft-readonly", version: "0.2.0" });
   registerServiceTools(server, client, config.maxResponseChars);
   registerEmployeeTools(server, client, config.maxResponseChars);
   registerLocationTools(server, client, config.maxResponseChars);
