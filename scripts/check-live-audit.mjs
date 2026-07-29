@@ -3,6 +3,13 @@ import { readFileSync } from "node:fs";
 const path = process.env.TRAFFT_AUDIT_LOG_PATH;
 if (!path) throw new Error("Missing TRAFFT_AUDIT_LOG_PATH.");
 
+const rawMinimum = process.env.TRAFFT_AUDIT_MIN_GET_EVENTS ?? "5";
+if (!/^\d+$/.test(rawMinimum)) throw new Error("TRAFFT_AUDIT_MIN_GET_EVENTS must be an integer.");
+const minimumGetEvents = Number(rawMinimum);
+if (!Number.isSafeInteger(minimumGetEvents) || minimumGetEvents < 1 || minimumGetEvents > 50) {
+  throw new Error("TRAFFT_AUDIT_MIN_GET_EVENTS must be between 1 and 50.");
+}
+
 const text = readFileSync(path, "utf8");
 if (!text.trim()) throw new Error("Live validation audit log is empty.");
 
@@ -48,5 +55,5 @@ for (const [index, line] of text.trim().split("\n").entries()) {
 }
 
 if (authEvents < 1) throw new Error("Audit log contains no authentication event.");
-if (getEvents < 5) throw new Error("Audit log contains fewer than five GET events.");
+if (getEvents < minimumGetEvents) throw new Error(`Audit log contains fewer than ${minimumGetEvents} GET events.`);
 process.stdout.write("Live audit metadata verification passed.\n");
