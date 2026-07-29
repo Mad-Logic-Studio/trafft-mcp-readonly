@@ -28,6 +28,9 @@ export function validateLiveEnvironment(env = process.env) {
   }
 
   const hostname = url.hostname.toLowerCase().replace(/\.$/, "");
+  if (hostname === "admin.trafft.com" || hostname.endsWith(".admin.trafft.com")) {
+    return { ok: false, code: "admin-dashboard-host-not-api" };
+  }
   if (!hosts.includes(hostname)) return { ok: false, code: "api-host-not-allowlisted" };
 
   if ((env.TRAFFT_API_PATH ?? "/api/v2") !== "/api/v2") return { ok: false, code: "api-path-unexpected" };
