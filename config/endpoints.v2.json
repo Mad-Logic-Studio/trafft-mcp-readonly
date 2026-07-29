@@ -1,0 +1,39 @@
+{
+  "manifestVersion": 2,
+  "reviewedAt": "2026-07-29",
+  "apiPath": "/api/v2",
+  "status": "live-readonly-candidate",
+  "sources": [
+    "https://trafft.com/docs/custom-features/api/",
+    "https://documenter.getpostman.com/view/1487056/2sAY4x9MRe"
+  ],
+  "validationNotes": [
+    "Authentication, services, employees, locations, appointment listing, and customers passed controlled live read-only validation.",
+    "Appointments remain list-only because the published collection does not document a read-by-ID appointment endpoint.",
+    "Availability uses the published calendar_start_date, calendar_end_date, service, employee, location, and additional_guest_count query contract and is included in the protected release validation."
+  ],
+  "stableReadCandidates": [
+    { "name": "customers.list", "method": "GET", "path": "/customers" },
+    { "name": "customers.get", "method": "GET", "path": "/customers/{id}" },
+    { "name": "employees.list", "method": "GET", "path": "/employees" },
+    { "name": "employees.get", "method": "GET", "path": "/employees/{id}" },
+    { "name": "locations.list", "method": "GET", "path": "/locations" },
+    { "name": "locations.get", "method": "GET", "path": "/locations/{id}" },
+    { "name": "services.list", "method": "GET", "path": "/services" },
+    { "name": "services.get", "method": "GET", "path": "/services/{id}" },
+    { "name": "appointments.list", "method": "GET", "path": "/appointments" },
+    { "name": "availability.list", "method": "GET", "path": "/available-times" }
+  ],
+  "experimentalReadCandidates": [
+    { "name": "webhooks.list", "method": "GET", "path": "/webhooks" },
+    { "name": "notifications.list", "method": "GET", "path": "/notifications" },
+    { "name": "workingHours.list", "method": "GET", "path": "/working-hours" },
+    { "name": "specialDays.list", "method": "GET", "path": "/special-days" },
+    { "name": "daysOff.list", "method": "GET", "path": "/days-off" },
+    { "name": "settings.get", "method": "GET", "path": "/settings" }
+  ],
+  "writes": {
+    "compiledIntoV1": false,
+    "deleteTools": false
+  }
+}
