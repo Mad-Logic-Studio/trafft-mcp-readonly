@@ -25,7 +25,7 @@ jobs:
       - name: Check out reviewed candidate
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
-          ref: 8401b422fc2b5f2cee2c988d554a9fd103da367d
+          ref: 6bcfe58f0ee09cd82eb324391eea1c05475784c1
           persist-credentials: false
 
       - name: Set up Node 20
@@ -44,7 +44,7 @@ jobs:
         env:
           TRAFFT_API_URL: ${{ secrets.TRAFFT_API_URL }}
           TRAFFT_API_PATH: /api/v2
-          TRAFFT_AUTH_PATH: /auth/token
+          TRAFFT_AUTH_PATH: /token
           TRAFFT_ALLOWED_HOSTS: ${{ secrets.TRAFFT_ALLOWED_HOSTS }}
           TRAFFT_CLIENT_ID: ${{ secrets.TRAFFT_CLIENT_ID }}
           TRAFFT_CLIENT_SECRET: ${{ secrets.TRAFFT_CLIENT_SECRET }}
@@ -56,7 +56,7 @@ jobs:
         env:
           TRAFFT_API_URL: ${{ secrets.TRAFFT_API_URL }}
           TRAFFT_API_PATH: /api/v2
-          TRAFFT_AUTH_PATH: /auth/token
+          TRAFFT_AUTH_PATH: /token
           TRAFFT_ALLOWED_HOSTS: ${{ secrets.TRAFFT_ALLOWED_HOSTS }}
           TRAFFT_CLIENT_ID: ${{ secrets.TRAFFT_CLIENT_ID }}
           TRAFFT_CLIENT_SECRET: ${{ secrets.TRAFFT_CLIENT_SECRET }}
@@ -88,7 +88,7 @@ jobs:
         env:
           TRAFFT_API_URL: ${{ secrets.TRAFFT_API_URL }}
           TRAFFT_API_PATH: /api/v2
-          TRAFFT_AUTH_PATH: /auth/token
+          TRAFFT_AUTH_PATH: /token
           TRAFFT_ALLOWED_HOSTS: ${{ secrets.TRAFFT_ALLOWED_HOSTS }}
           TRAFFT_CLIENT_ID: ${{ secrets.TRAFFT_CLIENT_ID }}
           TRAFFT_CLIENT_SECRET: ${{ secrets.TRAFFT_CLIENT_SECRET }}
