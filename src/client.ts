@@ -50,7 +50,7 @@ export class TrafftClient {
     const target = validateApiTarget(options.apiUrl, options.allowedHosts);
     this.origin = target.origin;
     this.apiPath = normalizeApiPath(options.apiPath, "TRAFFT_API_PATH");
-    this.authPath = normalizeApiPath(options.authPath ?? "/auth/token", "TRAFFT_AUTH_PATH");
+    this.authPath = normalizeApiPath(options.authPath ?? "/token", "TRAFFT_AUTH_PATH");
     this.clientId = options.clientId;
     this.clientSecret = options.clientSecret;
     this.timeoutMs = options.timeoutMs ?? 30_000;
@@ -65,13 +65,18 @@ export class TrafftClient {
     const started = Date.now();
     try {
       assertReadOnlyMethod("POST", this.authPath, this.authPath);
-      const response = await this.fetchImpl(new URL(this.authPath, `${this.origin}/`).toString(), {
+      const body = new URLSearchParams([
+        ["grant_type", "client_credentials"],
+        ["client_id", this.clientId],
+        ["client_secret", this.clientSecret]
+      ]).toString();
+      const response = await this.fetchImpl(joinApiUrl(this.origin, this.apiPath, this.authPath), {
         method: "POST",
         headers: {
           "Accept": "application/json",
-          "Content-Type": "application/json"
+          "Content-Type": "application/x-www-form-urlencoded"
         },
-        body: JSON.stringify({ clientId: this.clientId, clientSecret: this.clientSecret }),
+        body,
         signal: AbortSignal.timeout(this.timeoutMs),
         redirect: "error"
       });
