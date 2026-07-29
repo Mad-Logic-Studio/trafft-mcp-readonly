@@ -23,7 +23,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Check out reviewed candidate
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           ref: 1976b341ee6a535863d29a616270b89a408a2d71
           persist-credentials: false
