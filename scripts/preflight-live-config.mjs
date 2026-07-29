@@ -31,7 +31,7 @@ export function validateLiveEnvironment(env = process.env) {
   if (!hosts.includes(hostname)) return { ok: false, code: "api-host-not-allowlisted" };
 
   if ((env.TRAFFT_API_PATH ?? "/api/v2") !== "/api/v2") return { ok: false, code: "api-path-unexpected" };
-  if ((env.TRAFFT_AUTH_PATH ?? "/auth/token") !== "/auth/token") return { ok: false, code: "auth-path-unexpected" };
+  if ((env.TRAFFT_AUTH_PATH ?? "/token") !== "/token") return { ok: false, code: "auth-path-unexpected" };
   if ((env.TRAFFT_ENABLE_EXPERIMENTAL_READS ?? "false").toLowerCase() !== "false") {
     return { ok: false, code: "experimental-reads-enabled" };
   }
