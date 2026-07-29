@@ -31,23 +31,6 @@ jobs:
           if (!response.ok) throw new Error(`Published collection fetch failed (${response.status}).`);
           const document = await response.json();
           const matches = [];
-          function collectEvidence(value, path = "request", output = []) {
-            if (value === null || value === undefined) return output;
-            if (typeof value === "string") {
-              if (value.length <= 500 && /api\/v2|appointment|available|service|employee|location|date|time|page|limit|start|end|timezone|_id/i.test(`${path} ${value}`)) {
-                output.push({ path, value });
-              }
-              return output;
-            }
-            if (Array.isArray(value)) {
-              value.forEach((entry, index) => collectEvidence(entry, `${path}[${index}]`, output));
-              return output;
-            }
-            if (typeof value === "object") {
-              for (const [key, entry] of Object.entries(value)) collectEvidence(entry, `${path}.${key}`, output);
-            }
-            return output;
-          }
           function walk(node) {
             if (!node || typeof node !== "object") return;
             if (Array.isArray(node)) {
@@ -59,9 +42,12 @@ jobs:
             if (request && typeof request === "object" && /^(List Appointments|Available times)$/i.test(name)) {
               matches.push({
                 name,
-                requestKeys: Object.keys(request).sort(),
-                urlType: typeof request.url,
-                evidence: collectEvidence(request)
+                method: request.method,
+                url: request.url,
+                urlObject: request.urlObject,
+                description: typeof request.description === "string"
+                  ? request.description.slice(0, 5000)
+                  : request.description
               });
             }
             for (const value of Object.values(node)) walk(value);
