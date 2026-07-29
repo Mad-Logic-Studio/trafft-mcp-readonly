@@ -21,13 +21,13 @@ A release must not be tagged, merged to `main`, or described as production-ready
 
 ## Repository CI gates
 
-- [ ] Node 20 dependency installation succeeds with lifecycle scripts disabled.
-- [ ] `package-lock.json` is generated, reviewed, and committed.
-- [ ] `npm ci --ignore-scripts` succeeds from the committed lockfile.
-- [ ] `npm run check` succeeds against the real installed dependencies.
-- [ ] `npm audit --audit-level=high` reports no unresolved high or critical finding.
-- [ ] `npm pack --dry-run` contains only intended files.
-- [ ] MCP stdio protocol smoke test succeeds.
+- [x] Node 20 dependency installation succeeds with lifecycle scripts disabled.
+- [x] `package-lock.json` is generated, reviewed, and committed.
+- [x] `npm ci --ignore-scripts` succeeds from the committed lockfile.
+- [x] `npm run check` succeeds against the real installed dependencies.
+- [x] `npm audit --audit-level=high` reports no unresolved high or critical finding.
+- [x] `npm pack --dry-run` contains only intended files.
+- [x] MCP client/server protocol smoke test succeeds.
 
 ## Controlled Trafft read-only gates
 
