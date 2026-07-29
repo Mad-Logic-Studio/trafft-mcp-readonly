@@ -55,10 +55,48 @@ test("MCP protocol exposes exactly the stable read-only V1 tools", async () => {
     assert.deepEqual(names, expectedTools);
     assert.equal(names.some((name) => /^(create|update|delete|cancel|reschedule|set|change|patch)_/i.test(name)), false);
 
-    const result = await client.callTool({ name: "list_services", arguments: { limit: 1 } });
-    assert.notEqual(result.isError, true);
-    assert.equal(result.content[0]?.type, "text");
-    assert.match(result.content[0]?.text ?? "", /requestedPath/);
+    const serviceResult = await client.callTool({ name: "list_services", arguments: { limit: 1 } });
+    assert.notEqual(serviceResult.isError, true);
+    assert.equal(serviceResult.content[0]?.type, "text");
+    assert.match(serviceResult.content[0]?.text ?? "", /requestedPath/);
+
+    const appointmentResult = await client.callTool({
+      name: "list_appointments",
+      arguments: {
+        customerId: 22,
+        employeeId: 7,
+        serviceId: 11,
+        locationId: 3,
+        status: "approved",
+        sortBy: "start_time",
+        sortOrder: "desc",
+        page: 2,
+        limit: 5
+      }
+    });
+    assert.notEqual(appointmentResult.isError, true);
+    const appointmentPayload = JSON.parse(appointmentResult.content[0]?.text ?? "{}");
+    assert.equal(
+      appointmentPayload.requestedPath,
+      "/appointments?page=2&limit=5&customerId=22&employeeId=7&serviceId=11&locationId=3&status=approved&sort_by=start_time&sort_order=desc"
+    );
+
+    const availabilityResult = await client.callTool({
+      name: "get_available_times",
+      arguments: {
+        serviceId: 11,
+        date: "2026-07-30",
+        employeeId: 7,
+        locationId: 3,
+        additionalGuestCount: 2
+      }
+    });
+    assert.notEqual(availabilityResult.isError, true);
+    const availabilityPayload = JSON.parse(availabilityResult.content[0]?.text ?? "{}");
+    assert.equal(
+      availabilityPayload.requestedPath,
+      "/available-times?calendar_start_date=2026-07-30&calendar_end_date=2026-07-30&service=11&employee=7&location=3&additional_guest_count=2"
+    );
   } finally {
     await client.close();
     await server.close();
