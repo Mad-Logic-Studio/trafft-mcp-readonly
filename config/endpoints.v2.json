@@ -1,11 +1,16 @@
 {
-  "manifestVersion": 1,
-  "reviewedAt": "2026-07-28",
+  "manifestVersion": 2,
+  "reviewedAt": "2026-07-29",
   "apiPath": "/api/v2",
-  "status": "pre-live-readonly-validation",
+  "status": "live-readonly-candidate",
   "sources": [
     "https://trafft.com/docs/custom-features/api/",
-    "https://www.postman.com/trafft/trafft-public-workspace/overview"
+    "https://documenter.getpostman.com/view/1487056/2sAY4x9MRe"
+  ],
+  "validationNotes": [
+    "Authentication, services, employees, locations, appointment listing, and customers passed controlled live read-only validation.",
+    "Appointments remain list-only because the published collection does not document a read-by-ID appointment endpoint.",
+    "Availability uses the published calendar_start_date, calendar_end_date, service, employee, location, and additional_guest_count query contract and is included in the protected release validation."
   ],
   "stableReadCandidates": [
     { "name": "customers.list", "method": "GET", "path": "/customers" },
@@ -17,7 +22,6 @@
     { "name": "services.list", "method": "GET", "path": "/services" },
     { "name": "services.get", "method": "GET", "path": "/services/{id}" },
     { "name": "appointments.list", "method": "GET", "path": "/appointments" },
-    { "name": "appointments.get", "method": "GET", "path": "/appointments/{id}" },
     { "name": "availability.list", "method": "GET", "path": "/available-times" }
   ],
   "experimentalReadCandidates": [
