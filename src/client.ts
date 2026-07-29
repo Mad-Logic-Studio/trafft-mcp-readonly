@@ -81,7 +81,13 @@ export class TrafftClient {
         throw sanitizedHttpError("Trafft authentication", response);
       }
 
-      const payload = await this.readJson(response);
+      let payload: unknown;
+      try {
+        payload = await this.readJson(response);
+      } catch (error) {
+        this.audit({ event: "auth", method: "POST", path: this.authPath, status: "error", httpStatus: response.status, durationMs: Date.now() - started, requestId: safeRequestId(response) });
+        throw error;
+      }
       const token = getToken(payload);
       if (!token) throw new Error("Trafft authentication returned no recognized token field.");
       this.token = token;
@@ -144,7 +150,13 @@ export class TrafftClient {
       throw sanitizedHttpError(`Trafft API ${method} ${sanitizePath(path)}`, response);
     }
 
-    const data = await this.readJson(response) as T;
+    let data: T;
+    try {
+      data = await this.readJson(response) as T;
+    } catch (error) {
+      this.audit({ event: "request", method, path: sanitizePath(path), status: "error", httpStatus: response.status, durationMs: Date.now() - started, requestId: safeRequestId(response) });
+      throw error;
+    }
     this.audit({ event: "request", method, path: sanitizePath(path), status: "ok", httpStatus: response.status, durationMs: Date.now() - started, requestId: safeRequestId(response) });
     return data;
   }
@@ -155,12 +167,18 @@ export class TrafftClient {
       throw new Error("Trafft response exceeded the configured body-size limit.");
     }
 
-    const text = await readBodyWithLimit(response, this.maxHttpBodyBytes);
+    let text: string;
+    try {
+      text = await readBodyWithLimit(response, this.maxHttpBodyBytes);
+    } catch (error) {
+      if (error instanceof TypeError) throw new Error("Trafft returned a response with invalid UTF-8 encoding.");
+      throw error;
+    }
     if (!text) return {};
     try {
       return JSON.parse(text) as unknown;
     } catch {
-      throw new Error("Trafft returned a non-JSON response.");
+      throw new Error(`Trafft returned a non-JSON response (${safeResponseFormat(response)}).`);
     }
   }
 }
@@ -183,6 +201,15 @@ function safeRequestId(response: Response): string | undefined {
   if (!raw) return undefined;
   const clean = raw.replace(/[^a-zA-Z0-9._:-]/g, "").slice(0, 80);
   return clean || undefined;
+}
+
+function safeResponseFormat(response: Response): string {
+  const raw = response.headers.get("content-type")?.split(";", 1)[0]?.trim().toLowerCase() ?? "";
+  if (raw === "text/html" || raw === "application/xhtml+xml") return "html";
+  if (raw === "text/plain") return "text";
+  if (raw === "application/json" || raw.endsWith("+json")) return "invalid-json";
+  if (!raw) return "unknown";
+  return "other";
 }
 
 function retryDelayMs(response: Response, attempt: number): number {
