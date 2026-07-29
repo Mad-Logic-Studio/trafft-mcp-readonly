@@ -45,7 +45,7 @@ for (const [index, line] of text.trim().split("\n").entries()) {
     throw new Error(`Audit line ${index + 1} contains an unsafe path.`);
   }
   if (record.method === "POST") {
-    if (record.path !== "/auth/token" || record.event !== "auth") throw new Error(`Audit line ${index + 1} contains an unapproved POST.`);
+    if (record.path !== "/token" || record.event !== "auth") throw new Error(`Audit line ${index + 1} contains an unapproved POST.`);
     authEvents += 1;
   } else if (record.method === "GET") {
     getEvents += 1;
