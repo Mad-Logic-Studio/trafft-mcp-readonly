@@ -17,7 +17,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): RuntimeConfig 
   return {
     apiUrl: required(env, "TRAFFT_API_URL"),
     apiPath: required(env, "TRAFFT_API_PATH"),
-    authPath: env.TRAFFT_AUTH_PATH?.trim() || "/auth/token",
+    authPath: env.TRAFFT_AUTH_PATH?.trim() || "/token",
     allowedHosts: [...new Set(required(env, "TRAFFT_ALLOWED_HOSTS").split(",").map((value) => value.trim()).filter(Boolean))],
     clientId: required(env, "TRAFFT_CLIENT_ID"),
     clientSecret: required(env, "TRAFFT_CLIENT_SECRET"),
