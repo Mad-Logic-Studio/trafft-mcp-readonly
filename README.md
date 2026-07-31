@@ -1,16 +1,20 @@
 # Trafft MCP Read-Only
 
-A hardened, community-maintained, read-only Model Context Protocol server for auditing Trafft booking data without exposing mutation tools.
+> **Project status — concluded reference implementation**
+>
+> Active development for Sunflower Studio concluded on July 30, 2026 after Trafft Support confirmed that the public API does not support service creation or updates, appointment creation, appointment editing or rescheduling, or reversible appointment cancellation. Permanent deletion is the only published appointment mutation.
+>
+> This repository remains **public and unarchived** as a hardened read-only reference implementation. No deployment or ongoing maintenance is promised. Issues remain enabled so people may ask questions, report compatibility changes, or share useful findings. A future change would be considered only if Trafft publishes materially broader official API contracts.
+
+A hardened, community-readable, read-only Model Context Protocol server for auditing Trafft booking data without exposing mutation tools.
 
 This repository is a clean derivative of `mjmirza/trafft-mcp` at commit `c8793116e564a6c84d4e727ee0d4c7f24aef45ff`. It retains the upstream MIT terms and documents all material changes in `UPSTREAM.md` and `NOTICE`.
 
-## Release status
+## Final status
 
-**Live-validated read-only candidate—not yet a tagged production release.**
+The read-only implementation completed its build, protocol, dependency, privacy, authentication, core read, and bounded availability validation gates. It was not deployed as a Sunflower Studio production integration because the official Trafft API does not provide the safe write capabilities that motivated the broader project.
 
-The committed lockfile, Node 20 build, MCP protocol smoke test, high-severity dependency audit, package inspection, authentication flow, core list/detail reads, and privacy-minimized audit checks have passed. The protected release workflow also performs a bounded one-day availability read using a service returned by Trafft.
-
-Before the first tagged release, complete the account-specific service/capacity reconciliation, employee-assignment review, and pagination verification recorded in `docs/RELEASE_CHECKLIST.md`. Do not call this project affiliated with, endorsed by, or officially verified by Trafft.
+The repository is intentionally not tagged as an actively maintained production release.
 
 ## Stable V1 tools
 
@@ -34,7 +38,19 @@ Trafft's published collection documents appointment listing but not a read-by-ID
 
 No create, update, cancel, reschedule, pricing-write, webhook-write, booking, coupon, or delete tool is compiled into stable V1.
 
-Six experimental **read-only** probes—webhooks, notifications, working hours, Special Days, Days Off, and settings—remain disabled unless `TRAFFT_ENABLE_EXPERIMENTAL_READS=true`. Do not enable them until each path is verified.
+Six experimental **read-only** probes—webhooks, notifications, working hours, Special Days, Days Off, and settings—remain disabled unless `TRAFFT_ENABLE_EXPERIMENTAL_READS=true`. They should not be enabled without fresh verification against Trafft's current official API.
+
+## Confirmed Trafft API boundary
+
+Trafft Support confirmed the following in July 2026:
+
+- services may only be listed or retrieved;
+- services cannot be created or updated through the API;
+- appointments cannot be created, edited, or rescheduled through the API;
+- reversible appointment cancellation is unavailable;
+- appointment listing and permanent deletion are the only supported appointment operations described by support.
+
+This project does not use undocumented dashboard endpoints or infer unsupported mutation contracts.
 
 ## Security architecture
 
@@ -69,9 +85,9 @@ The mock security suite does not call Trafft and does not require credentials.
 
 Never commit credentials or paste them into chat, issues, screenshots, fixtures, or shell history. Use an OS secret store or approved private runtime injection.
 
-## Community
+## Questions and comments
 
-Contributions are welcome under `CONTRIBUTING.md`. V1 deliberately remains read-only. Security concerns should be reported privately through GitHub Security Advisories.
+Use the standing project-status issue for general questions and compatibility discussion. Security concerns should be reported privately through GitHub Security Advisories.
 
 ## Independence
 
