@@ -33,6 +33,9 @@ declare module "node:http" {
   export type ServerResponse = any;
   export const createServer: (handler: (...args: any[]) => any) => any;
 }
+declare module "node:module" {
+  export const createRequire: (filename: string) => (specifier: string) => any;
+}
 declare module "node:path" {
   export const dirname: (...args: any[]) => string;
   export const resolve: (...args: any[]) => string;
@@ -50,13 +53,6 @@ declare module "@modelcontextprotocol/sdk/server/mcp.js" {
 }
 declare module "@modelcontextprotocol/sdk/server/stdio.js" {
   export class StdioServerTransport {}
-}
-declare module "@modelcontextprotocol/sdk/server/streamableHttp.js" {
-  export class StreamableHTTPServerTransport {
-    constructor(options: any);
-    handleRequest(req: any, res: any, parsedBody?: unknown): Promise<void>;
-    close(): Promise<void>;
-  }
 }
 declare module "zod" {
   export const z: any;
