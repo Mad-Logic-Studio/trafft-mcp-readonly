@@ -47,6 +47,7 @@ declare module "@modelcontextprotocol/sdk/server/mcp.js" {
   export class McpServer {
     constructor(config: any);
     tool(name: string, description: string, schema: any, handler: (args: any) => any): void;
+    registerTool(name: string, config: any, handler: (args: any) => any): void;
     connect(transport: any): Promise<void>;
     close(): Promise<void>;
   }

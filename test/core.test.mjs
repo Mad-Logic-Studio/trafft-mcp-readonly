@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import { TrafftClient } from "../build-core/client.js";
 import { assertReadOnlyMethod, joinApiUrl, validateApiTarget } from "../build-core/security.js";
 import { textResult } from "../build-core/util.js";
+import { TrafftWriteClient } from "../build-core/write-client.js";
+import { assertAllowedWrite } from "../build-core/write-security.js";
 
 const jsonResponse = (body, status = 200, headers = {}) => new Response(JSON.stringify(body), {
   status,
@@ -17,6 +19,17 @@ const options = (fetchImpl, overrides = {}) => ({
   clientSecret: "secret",
   fetchImpl,
   sleep: async () => undefined,
+  ...overrides
+});
+
+const writeOptions = (fetchImpl, overrides = {}) => ({
+  apiUrl: "https://socialmedium.trafft.com",
+  apiPath: "/api/v2",
+  allowedHosts: ["socialmedium.trafft.com"],
+  clientId: "id",
+  clientSecret: "secret",
+  writesEnabled: true,
+  fetchImpl,
   ...overrides
 });
 
@@ -36,6 +49,22 @@ test("blocks every write except the authentication POST", () => {
   for (const method of ["POST", "PUT", "PATCH", "DELETE"]) {
     assert.throws(() => assertReadOnlyMethod(method, "/customers/1", "/token"), /blocked/);
   }
+});
+
+test("controlled write allowlist is disabled by default and exact when enabled", () => {
+  assert.throws(() => assertAllowedWrite("POST", "/customers", false), /disabled/);
+  assert.doesNotThrow(() => assertAllowedWrite("POST", "/customers", true));
+  for (const [method, path] of [
+    ["PUT", "/customers"],
+    ["PATCH", "/customers/1"],
+    ["DELETE", "/customers/1"],
+    ["POST", "/customers/1"],
+    ["POST", "/appointments"],
+    ["POST", "/services"]
+  ]) {
+    assert.throws(() => assertAllowedWrite(method, path, true), /blocked/);
+  }
+  assert.throws(() => assertAllowedWrite("POST", "/customers?admin=true", true), /query string/);
 });
 
 test("joins only normalized API paths", () => {
@@ -61,6 +90,63 @@ test("authenticates with the published client-credentials form and performs an A
   assert.equal(calls[0].init.headers["Content-Type"], "application/x-www-form-urlencoded");
   assert.equal(calls[0].init.body, "grant_type=client_credentials&client_id=id&client_secret=secret");
   assert.equal(calls[1].init.headers.Authorization, "Bearer token-1");
+});
+
+test("creates only the documented customer payload when writes are enabled", async () => {
+  const calls = [];
+  const fetchImpl = async (url, init) => {
+    calls.push({ url: String(url), init });
+    if (isAuthUrl(url)) return jsonResponse({ access_token: "write-token" });
+    return jsonResponse({ id: 75 });
+  };
+  const client = new TrafftWriteClient(writeOptions(fetchImpl));
+  const result = await client.createCustomer({
+    first_name: "Jane",
+    last_name: "Doe",
+    email: "jane@example.com",
+    phone: "+15555550123",
+    description: "Test customer"
+  });
+  assert.deepEqual(result, { id: 75 });
+  assert.equal(calls.length, 2);
+  assert.equal(calls[1].url, "https://socialmedium.trafft.com/api/v2/customers");
+  assert.equal(calls[1].init.method, "POST");
+  assert.equal(calls[1].init.redirect, "error");
+  assert.equal(calls[1].init.headers.Authorization, "Bearer write-token");
+  assert.equal(calls[1].init.headers["Content-Type"], "application/json");
+  assert.deepEqual(JSON.parse(calls[1].init.body), {
+    first_name: "Jane",
+    last_name: "Doe",
+    email: "jane@example.com",
+    phone: "+15555550123",
+    description: "Test customer"
+  });
+});
+
+test("disabled writes fail before authentication or network access", async () => {
+  let calls = 0;
+  const client = new TrafftWriteClient(writeOptions(async () => {
+    calls += 1;
+    return jsonResponse({});
+  }, { writesEnabled: false }));
+  await assert.rejects(client.createCustomer({ first_name: "No", last_name: "Write", email: "no@example.com" }), /disabled/);
+  assert.equal(calls, 0);
+});
+
+test("write failures are never retried because upstream mutation status may be ambiguous", async () => {
+  let writeCalls = 0;
+  const fetchImpl = async (url) => {
+    if (isAuthUrl(url)) return jsonResponse({ access_token: "write-token" });
+    writeCalls += 1;
+    return jsonResponse({ message: "busy", privateEmail: "private@example.com" }, 503);
+  };
+  const client = new TrafftWriteClient(writeOptions(fetchImpl));
+  await assert.rejects(client.createCustomer({ first_name: "Jane", last_name: "Doe", email: "jane@example.com" }), (error) => {
+    assert.match(error.message, /failed \(503\)/);
+    assert.doesNotMatch(error.message, /private@example.com|busy/);
+    return true;
+  });
+  assert.equal(writeCalls, 1);
 });
 
 test("reauthenticates once after a 401", async () => {
