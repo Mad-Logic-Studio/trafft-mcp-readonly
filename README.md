@@ -1,10 +1,10 @@
 # Trafft MCP Read-Only
 
-> **Project status — remote-access upgrade in review (August 2026)**
+> **Project status — remote read access validated; controlled write foundation under review (August 2026)**
 >
-> The hardened July 2026 read-only implementation remains the verified baseline. Development was reopened on August 9, 2026 to add an authenticated remote MCP transport so the same validated tool surface can be hosted for remote MCP clients.
+> The hardened read-only implementation remains the stable baseline. Remote Streamable HTTP access has been added without broadening the stable tool surface. A separate controlled-write foundation is under review and remains intentionally isolated from the read-only server.
 >
-> Trafft's current public documentation describes a broader API surface than was available during the July validation. This branch does **not** infer or enable write tools from high-level documentation alone. Stable tools remain read-only until exact endpoint, request-body, cancellation, and failure semantics are verified against Trafft's current official contract.
+> Downstream validation has also proven a generic architecture for an OAuth-protected admin MCP, explicit write gates, server-side authorization, metadata-only write auditing, and webhook/event-driven lifecycle automation. Those findings are documented publicly in [`docs/VALIDATED_ADMIN_AUTOMATION_PATTERNS.md`](docs/VALIDATED_ADMIN_AUTOMATION_PATTERNS.md) with tenant-specific details removed.
 
 A hardened Model Context Protocol server for inspecting Trafft booking data without exposing mutation tools. It supports both local `stdio` and bearer-protected remote Streamable HTTP transports.
 
@@ -72,6 +72,22 @@ Authorization: Bearer <MCP_ACCESS_TOKEN>
 
 Never put `TRAFFT_CLIENT_ID` or `TRAFFT_CLIENT_SECRET` into the MCP client configuration. Those credentials belong only in the server-side secret store.
 
+## Controlled admin evolution
+
+The stable reader should remain read-only. If writes are required, use a **separate admin MCP** with its own authorization boundary rather than quietly adding mutations to the reader.
+
+The validated pattern is:
+
+- OAuth 2.1 for the admin resource
+- server-side administrator allowlist
+- exact method/path allowlist for upstream mutations
+- explicit confirmation for non-idempotent tools
+- no automatic retry for ambiguous writes
+- metadata-only write audit
+- one mutation promoted at a time after exact current contract review
+
+See [`docs/VALIDATED_ADMIN_AUTOMATION_PATTERNS.md`](docs/VALIDATED_ADMIN_AUTOMATION_PATTERNS.md) for the redacted engineering findings and the event-hub/lifecycle pattern that emerged from controlled downstream testing.
+
 ## Container deployment
 
 Build and run the included production container with all secrets injected at runtime. Do not bake `.env` files, API credentials, or MCP access tokens into the image.
@@ -94,7 +110,7 @@ The container exposes port `3000`, starts `build/remote.js`, and keeps audit sto
 - Bounded remote request bodies
 - Valid-JSON MCP response limits
 - Privacy-minimized JSONL operation log
-- No deep/write audit mode
+- No deep/write audit mode in the stable reader
 
 See `SECURITY.md` for the verified baseline guarantees and limitations.
 
@@ -117,7 +133,13 @@ Never commit credentials or paste them into chat, issues, screenshots, fixtures,
 
 The July 2026 implementation intentionally compiled only read operations after Trafft Support described a much narrower mutation surface at that time. Those findings remain part of the project history, but should not be treated as a claim about Trafft's present-day API.
 
-Current write support will be considered only from exact, current, official Trafft request contracts and controlled validation. Undocumented dashboard endpoints are out of scope.
+Current write support is considered only from exact, current, official request contracts and controlled validation. Undocumented dashboard endpoints are out of scope.
+
+## Broader lifecycle-engine work
+
+The Trafft-specific MCP is deliberately not becoming a generic CRM orchestration repository. The reusable multi-system lifecycle pattern—payments/orders, booking, CRM/email, webhooks, identity mapping, reconciliation, audit, and MCP operator surfaces—belongs in a separate vendor-neutral public project.
+
+That separation keeps this repository useful to Trafft users without coupling it to any one company's CRM or commerce stack.
 
 ## Questions and comments
 
