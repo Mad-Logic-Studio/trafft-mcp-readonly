@@ -5,12 +5,11 @@ import { createRequire } from "node:module";
 import "dotenv/config";
 import { createTrafftMcpRuntime } from "./server-factory.js";
 
-// @modelcontextprotocol/sdk 1.29.0's StreamableHTTPServerTransport declaration is
-// incompatible with TypeScript 6 + exactOptionalPropertyTypes even though the
-// runtime transport is valid. Keep the lockfile pinned and load this one module
-// through Node's runtime resolver so the upstream declaration defect does not
-// force us to weaken this repository's compiler settings. Remove this shim in a
-// separately reviewed SDK upgrade once the pinned declaration is compatible.
+// Keep the Streamable HTTP transport behind a small runtime boundary. The
+// legacy v1 SDK's transport declarations have changed across patch releases
+// under TypeScript 6 + exactOptionalPropertyTypes; loading this one module via
+// Node's resolver lets this repository retain strict compiler settings while
+// the transport's runtime contract remains narrow and explicit below.
 const require = createRequire(import.meta.url);
 const { StreamableHTTPServerTransport } = require("@modelcontextprotocol/sdk/server/streamableHttp.js") as {
   StreamableHTTPServerTransport: new (options: Record<string, unknown>) => {
