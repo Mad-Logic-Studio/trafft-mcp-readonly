@@ -10,8 +10,14 @@ declare const process: {
   exit(code?: number): never;
   once(event: string, listener: () => void): void;
 };
+type Buffer = any;
+declare const Buffer: any;
 
 declare module "dotenv/config";
+declare module "node:crypto" {
+  export const createHash: (...args: any[]) => any;
+  export const timingSafeEqual: (...args: any[]) => boolean;
+}
 declare module "node:fs" {
   export const constants: any;
   export const closeSync: (...args: any[]) => any;
@@ -21,6 +27,14 @@ declare module "node:fs" {
   export const mkdirSync: (...args: any[]) => any;
   export const openSync: (...args: any[]) => number;
   export const writeSync: (...args: any[]) => any;
+}
+declare module "node:http" {
+  export type IncomingMessage = any;
+  export type ServerResponse = any;
+  export const createServer: (handler: (...args: any[]) => any) => any;
+}
+declare module "node:module" {
+  export const createRequire: (filename: string) => (specifier: string) => any;
 }
 declare module "node:path" {
   export const dirname: (...args: any[]) => string;

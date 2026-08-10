@@ -4,7 +4,7 @@ const toolDirectory = new URL("../src/tools/", import.meta.url);
 const toolFiles = readdirSync(toolDirectory).filter((name) => name.endsWith(".ts"));
 const toolSource = toolFiles.map((name) => readFileSync(new URL(name, toolDirectory), "utf8")).join("\n");
 const clientSource = readFileSync(new URL("../src/client.ts", import.meta.url), "utf8");
-const indexSource = readFileSync(new URL("../src/index.ts", import.meta.url), "utf8");
+const serverFactorySource = readFileSync(new URL("../src/server-factory.ts", import.meta.url), "utf8");
 const securitySource = readFileSync(new URL("../src/security.ts", import.meta.url), "utf8");
 
 const failures = [];
@@ -19,8 +19,9 @@ if (!clientSource.includes('assertReadOnlyMethod(method, path, this.authPath)'))
 if (!clientSource.includes('redirect: "error"')) failures.push("Fetch redirect refusal is missing.");
 if (!clientSource.includes("readBodyWithLimit")) failures.push("Streaming response-size enforcement is missing.");
 if (!securitySource.includes("API request escaped the configured API path")) failures.push("API path confinement check is missing.");
-if (/register(?:Booking|Coupon)Tools/.test(indexSource)) failures.push("Index registers an upstream write-capable tool module.");
-if (!indexSource.includes("if (config.enableExperimentalReads)")) failures.push("Experimental tools are not gated.");
+if (/register(?:Booking|Coupon)Tools/.test(serverFactorySource)) failures.push("Server factory registers an upstream write-capable tool module.");
+if (!serverFactorySource.includes("if (config.enableExperimentalReads)")) failures.push("Experimental tools are not gated.");
+if (!serverFactorySource.includes("registerExperimentalReadTools(server, client, config.maxResponseChars)")) failures.push("Experimental tool registration is missing from its gate.");
 
 const stableExpected = new Set([
   "list_services", "get_service", "find_services_by_name",
