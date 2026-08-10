@@ -1,9 +1,23 @@
 #!/usr/bin/env node
 import { createHash, timingSafeEqual } from "node:crypto";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
-import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { createRequire } from "node:module";
 import "dotenv/config";
 import { createTrafftMcpRuntime } from "./server-factory.js";
+
+// @modelcontextprotocol/sdk 1.29.0's StreamableHTTPServerTransport declaration is
+// incompatible with TypeScript 6 + exactOptionalPropertyTypes even though the
+// runtime transport is valid. Keep the lockfile pinned and load this one module
+// through Node's runtime resolver so the upstream declaration defect does not
+// force us to weaken this repository's compiler settings. Remove this shim in a
+// separately reviewed SDK upgrade once the pinned declaration is compatible.
+const require = createRequire(import.meta.url);
+const { StreamableHTTPServerTransport } = require("@modelcontextprotocol/sdk/server/streamableHttp.js") as {
+  StreamableHTTPServerTransport: new (options: Record<string, unknown>) => {
+    close(): Promise<void>;
+    handleRequest(req: IncomingMessage, res: ServerResponse, parsedBody?: unknown): Promise<void>;
+  };
+};
 
 const port = boundedInteger(process.env.PORT ?? process.env.MCP_PORT, 3000, 1, 65535, "MCP_PORT");
 const bindHost = process.env.MCP_BIND_HOST?.trim() || "127.0.0.1";
@@ -58,7 +72,7 @@ const httpServer = createServer(async (req, res) => {
     };
 
     res.once("close", () => { void cleanup(); });
-    await server.connect(transport);
+    await server.connect(transport as never);
     await transport.handleRequest(req, res, body);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unexpected request failure.";
