@@ -1,0 +1,38 @@
+name: Refresh SDK lockfile
+
+on:
+  push:
+    branches: ["upgrade/remote-mcp-2026"]
+    paths: [".github/workflows/refresh-sdk-lock.yml"]
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          ref: upgrade/remote-mcp-2026
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: "20"
+          cache: npm
+      - name: Update pinned MCP SDK and lockfile
+        run: npm install --package-lock-only --ignore-scripts --save-exact @modelcontextprotocol/sdk@1.30.0
+      - name: Refresh safe transitive resolutions
+        run: npm audit fix --package-lock-only --ignore-scripts
+      - name: Verify high-severity audit gate
+        run: npm audit --audit-level=high
+      - name: Commit regenerated manifest and lockfile
+        run: |
+          if git diff --quiet -- package.json package-lock.json; then
+            echo "No dependency changes were generated."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          git commit -m "Update MCP SDK and secure transitive dependencies"
+          git push origin HEAD:upgrade/remote-mcp-2026
