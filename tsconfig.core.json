@@ -19,6 +19,8 @@
   "include": [
     "src/security.ts",
     "src/client.ts",
+    "src/write-security.ts",
+    "src/write-client.ts",
     "src/util.ts"
   ]
 }
